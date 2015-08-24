@@ -96,12 +96,21 @@ typedef int		bool;
 
 #define E1000_PCI_REG(reg) (*((volatile uint32_t *)(reg)))
 
+#define E1000_PCI_REG16(reg) (*((volatile uint16_t *)(reg)))
+
 #define E1000_PCI_REG_WRITE(reg, value) do { \
 	E1000_PCI_REG((reg)) = (rte_cpu_to_le_32(value)); \
 } while (0)
 
+#define E1000_PCI_REG_WRITE16(reg, value) do { \
+  E1000_PCI_REG16((reg)) = (value); \
+} while (0)
+
 #define E1000_PCI_REG_ADDR(hw, reg) \
 	((volatile uint32_t *)((char *)(hw)->hw_addr + (reg)))
+
+#define E1000_PCI_REG_FLASH_ADDR(hw, reg) \
+  ((volatile uint32_t *)((char *)(hw)->flash_address + (reg)))
 
 #define E1000_PCI_REG_ARRAY_ADDR(hw, reg, index) \
 	E1000_PCI_REG_ADDR((hw), (reg) + ((index) << 2))
@@ -109,6 +118,11 @@ typedef int		bool;
 static inline uint32_t e1000_read_addr(volatile void* addr)
 {
 	return rte_le_to_cpu_32(E1000_PCI_REG(addr));
+}
+
+static inline uint32_t e1000_read_addr16(volatile void* addr)
+{
+  return E1000_PCI_REG16(addr);
 }
 
 /* Necessary defines */
@@ -160,16 +174,16 @@ static inline uint32_t e1000_read_addr(volatile void* addr)
  */
 
 #define E1000_READ_FLASH_REG(hw, reg) \
-	(E1000_ACCESS_PANIC(E1000_READ_FLASH_REG, hw, reg, 0), 0)
+	e1000_read_addr(E1000_PCI_REG_FLASH_ADDR((hw), (reg)))
 
 #define E1000_READ_FLASH_REG16(hw, reg)  \
-	(E1000_ACCESS_PANIC(E1000_READ_FLASH_REG16, hw, reg, 0), 0)
+	e1000_read_addr16(E1000_PCI_REG_FLASH_ADDR((hw), (reg)))
 
 #define E1000_WRITE_FLASH_REG(hw, reg, value)  \
-	E1000_ACCESS_PANIC(E1000_WRITE_FLASH_REG, hw, reg, value)
+	E1000_PCI_REG_WRITE(E1000_PCI_REG_FLASH_ADDR((hw), (reg)), (value))
 
 #define E1000_WRITE_FLASH_REG16(hw, reg, value) \
-	E1000_ACCESS_PANIC(E1000_WRITE_FLASH_REG16, hw, reg, value)
+	E1000_PCI_REG_WRITE16(E1000_PCI_REG_FLASH_ADDR((hw), (reg)), (value))
 
 #define STATIC static
 
