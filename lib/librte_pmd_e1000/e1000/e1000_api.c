@@ -1355,3 +1355,25 @@ void e1000_shutdown_fiber_serdes_link(struct e1000_hw *hw)
 		hw->mac.ops.shutdown_serdes(hw);
 }
 
+/**
+ *  e1000_device_is_ich8 - Check for ICH8 device
+ *  @hw: pointer to the HW structure
+ *
+ *  return TRUE for ICH8, otherwise FALSE
+  **/
+bool e1000_device_is_ich8(struct e1000_hw *hw)
+{
+	DEBUGFUNC("e1000_device_is_ich8");
+
+	switch (hw->device_id) {
+	case E1000_DEV_ID_PCH_LPT_I217_LM:
+	case E1000_DEV_ID_PCH_LPT_I217_V:
+	case E1000_DEV_ID_PCH_LPTLP_I218_LM:
+	case E1000_DEV_ID_PCH_LPTLP_I218_V:
+		return 1;
+
+	default:
+		return 0;
+	}
+}
+

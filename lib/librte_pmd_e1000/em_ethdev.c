@@ -244,6 +244,10 @@ eth_em_dev_init(struct rte_eth_dev *eth_dev)
 
 	/* For ICH8 support we'll need to map the flash memory BAR */
 
+	if (e1000_device_is_ich8(hw))
+		hw->flash_address = (void *)pci_dev->mem_resource[1].addr;
+
+
 	if (e1000_setup_init_funcs(hw, TRUE) != E1000_SUCCESS ||
 			em_hw_init(hw) != 0) {
 		PMD_INIT_LOG(ERR, "port_id %d vendorID=0x%x deviceID=0x%x: "
@@ -434,6 +438,7 @@ em_set_pba(struct e1000_hw *hw)
 			break;
 		case e1000_pchlan:
 		case e1000_pch2lan:
+		case e1000_pch_lpt:
 			pba = E1000_PBA_26K;
 			break;
 		default:
@@ -676,6 +681,8 @@ em_hardware_init(struct e1000_hw *hw)
 	/* Workaround: no TX flow ctrl for PCH */
 	if (hw->mac.type == e1000_pchlan)
 		hw->fc.requested_mode = e1000_fc_rx_pause;
+	else if (hw->mac.type == e1000_pch_lpt)
+		hw->fc.requested_mode = e1000_fc_full;
 
 	/* Override - settings for PCH2LAN, ya its magic :) */
 	if (hw->mac.type == e1000_pch2lan) {
@@ -843,6 +850,7 @@ em_get_max_pktlen(const struct e1000_hw *hw)
 	case e1000_pch2lan:
 	case e1000_82574:
 	case e1000_80003es2lan: /* 9K Jumbo Frame size */
+	case e1000_pch_lpt:
 		return (0x2412);
 	case e1000_pchlan:
 		return (0x1000);
